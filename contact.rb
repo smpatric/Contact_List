@@ -1,8 +1,9 @@
+require_relative 'contact_database'
 class Contact
  
   attr_accessor :name, :email
 
-  @@temp_contacts = []
+  @@contacts = []
 
   def initialize(name, email)
     # TODO: assign local variables to instance variables
@@ -12,11 +13,19 @@ class Contact
  
   def to_s
     # TODO: return string representation of Contact
-    puts "Name: #{@name}, Email: #{@email}"
+    "#{@name}, #{@email}"
   end
  
   ## Class Methods
   class << self
+    def no_dupes(email)
+      ContactDatabase.read_db.each do |name, email|
+        @@contacts << Contact.new(name, email)
+      end
+      dupes = @@contacts.select { |contact| (contact.email.downcase.include? email) }
+      dupes.length > 0 ? true : false
+    end
+
     def create(name, email)
       # TODO: Will initialize a contact as well as add it to the list of contacts
       new_contact = Contact.new(name, email)
@@ -27,23 +36,25 @@ class Contact
  
     def find(name)
       # TODO: Will find and return contact by name
-      CSV.foreach('contacts.csv') do |row|
-        @@temp_contacts << row
+      ContactDatabase.read_db.each do |name, email|
+        @@contacts << Contact.new(name, email)
       end
-      puts @@temp_contacts.include?(.*name.*)
+      puts @@contacts.select { |contact| (contact.name.downcase.include? name) || (contact.email.downcase.include? name)}
     end
- 
+
     def all 
-      CSV.foreach('contacts.csv') do |row|
-        @@temp_contacts << row
+      ContactDatabase.read_db.each do |name, email|
+        @@contacts << Contact.new(name, email)
       end
-      @@temp_contacts.each_with_index do |record, index|
-        puts "ID: #{index} - #{record}"
-      end
+      @@contacts.each_with_index { |record, index| puts "#{index} : #{record}"}
     end
     
     def show(id)
       # TODO: Show a contact, based on ID
+       ContactDatabase.read_db.each do |name, email|
+        @@contacts << Contact.new(name, email)
+      end
+      puts @@contacts[id]
     end
     
   end
