@@ -22,7 +22,7 @@ class Contact
       ContactDatabase.read_db.each do |name, email|
         @@contacts << Contact.new(name, email)
       end
-      dupes = @@contacts.select { |contact| (contact.email.downcase.include? email) }
+      dupes = @@contacts.select { |contact| (contact.email.include? email) }
       dupes.length > 0 ? true : false
     end
 
@@ -56,7 +56,5 @@ class Contact
       end
       puts @@contacts[id]
     end
-    
   end
- 
 end

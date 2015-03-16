@@ -2,7 +2,7 @@ require_relative 'contact'
 require_relative 'contact_database'
 
 
-contacts = CSV.read('contacts.csv')
+#contacts = CSV.read('contacts.csv')
 
 @input = ARGV.shift
 
