@@ -8,36 +8,40 @@ require_relative 'contact_database'
 
 def help_menu
   puts "Here is a list of available commands:"
-  puts "new - Create a new contact\nlist - List all contacts\nshow - Show a contact\nfind - Find a contact" 
+  puts "new - Create a new contact\nupdate - Update an existing contact\nfind - Find a contact" 
 end
 
 def input
   if @input == "help"
     help_menu
   elsif @input == "new"
-    puts "What's the contact Email?"
+    puts "What's the contact's first name?"
+    f_name = gets.chomp
+    puts "What's the contact's lastn name?"
+    l_name = gets.chomp
+    puts "What's the contact's email?"
     email = gets.chomp
-    if Contact.no_dupes(email)
-      puts "This contact already exists!"
-    else
-      puts "What's the contact name?"
-      name = gets.chomp
-      Contact.create(name, email)
-    end
-    #call create method on Contact
-  elsif @input == "list"
-    Contact.all
-    #call all method on Contact
-  elsif @input == "show"
-    puts "What contact ID are you searching for?"
-    id = gets.chomp.to_i
-    Contact.show(id)
-    # call show method on Contact
+    Contact.new(f_name, l_name, email).save
+  elsif @input == "update"
+    puts "What contact ID would you like to update?"
+    id = gets.chomp
+    Contact.update(id)
   elsif @input == "find"
-    puts "Who are you searching for?"
-    name = gets.chomp
-    Contact.find(name.to_s.downcase)
-    #call find method on Contact
+    puts "Would you like to search by First Name, Last Name, or Email?"
+    answer = gets.chomp.downcase
+    if answer == "first name"
+      puts "What is the contact's First Name?"
+      name = gets.chomp
+      Contact.find_all_by_firstname(name)
+    elsif answer == "last name"
+      puts "What is the contact's Last Name?"
+      name = gets.chomp
+      Contact.find_all_by_lastname(name)
+    else 
+      puts "What is the contact's Email?"
+      email = gets.chomp
+      Contact.find(email)
+    end
   end
 end  
 

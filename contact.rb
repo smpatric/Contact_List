@@ -1,60 +1,96 @@
 require_relative 'contact_database'
+require 'pg'
+
 class Contact
  
-  attr_accessor :name, :email
+  attr_accessor :firstname,:lastname, :email, :id
 
   @@contacts = []
+  @@db_connection = nil
 
-  def initialize(name, email)
+  def initialize(firstname, lastname, email)
     # TODO: assign local variables to instance variables
-    @name = name
+    @id = nil
+    @firstname = firstname
+    @lastname = lastname
     @email = email
   end
  
-  def to_s
-    # TODO: return string representation of Contact
-    "#{@name}, #{@email}"
+  def save
+    check = Contact.connect.exec_params('SELECT * FROM contacts WHERE email = $1', [@email])
+    if check.ntuples == 0
+      Contact.connect.exec_params('INSERT INTO contacts (firstname, lastname, email) 
+      VALUES ($1, $2, $3)', [@firstname, @lastname, @email])
+      puts "Contact added!"
+    else
+      puts "This contact exists already!"
+    end
   end
  
   ## Class Methods
   class << self
-    def no_dupes(email)
-      ContactDatabase.read_db.each do |name, email|
-        @@contacts << Contact.new(name, email)
-      end
-      dupes = @@contacts.select { |contact| (contact.email.include? email) }
-      dupes.length > 0 ? true : false
+    def connect
+      @@db_connection ||= PG.connect(
+        dbname: 'd7a3eod2r4ja7f',
+        port: 5432,
+        user: 'hvzvmtuzwvwzwx',
+        host: 'ec2-107-22-253-198.compute-1.amazonaws.com',
+        password: 'HmxmJY9xIpUjvabvoIbW8ZCvkD')
     end
 
-    def create(name, email)
-      # TODO: Will initialize a contact as well as add it to the list of contacts
-      new_contact = Contact.new(name, email)
-      CSV.open('contacts.csv', 'a') do |file|
-        file << [new_contact.name, new_contact.email]
-      end
-    end
- 
-    def find(name)
-      # TODO: Will find and return contact by name
-      ContactDatabase.read_db.each do |name, email|
-        @@contacts << Contact.new(name, email)
-      end
-      puts @@contacts.select { |contact| (contact.name.downcase.include? name) || (contact.email.downcase.include? name)}
+    def close
+      @@db_connection.close
     end
 
-    def all 
-      ContactDatabase.read_db.each do |name, email|
-        @@contacts << Contact.new(name, email)
-      end
-      @@contacts.each_with_index { |record, index| puts "#{index} : #{record}"}
+    def find(email)
+      search = Contact.connect.exec_params('SELECT * FROM contacts WHERE email = $1', [email] )
+      result = Contact.new(search[0]["firstname"], search[0]["lastname"], search[0]["email"])
+      result.id = search[0]["id"]
+      puts "ID: #{result.id}\nName: #{result.firstname} #{result.lastname}\nEmail: #{result.email}"
     end
-    
-    def show(id)
-      # TODO: Show a contact, based on ID
-       ContactDatabase.read_db.each do |name, email|
-        @@contacts << Contact.new(name, email)
+
+    def find_all_by_lastname(name)
+      results = []
+      Contact.connect.exec_params('SELECT * FROM contacts WHERE lastname = $1', [name.downcase.capitalize!]) do |rows|
+        rows.each do |row|
+          new_contact = Contact.new(
+            row['firstname'],
+            row['lastname'],
+            row['email'])
+          new_contact.id = row['id']
+          results << new_contact
+        end
       end
-      puts @@contacts[id]
+      puts results.inspect
+    end
+
+     def find_all_by_firstname(name)
+      results = []
+      Contact.connect.exec_params('SELECT * FROM contacts WHERE firstname = $1', [name.downcase.capitalize!]) do |rows|
+        rows.each do |row|
+          new_contact = Contact.new(
+            row['firstname'],
+            row['lastname'],
+            row['email'])
+          new_contact.id = row['id']
+          results << new_contact
+        end
+      end
+      puts results.inspect
+    end
+
+    def update(id)
+      search = Contact.connect.exec_params('SELECT * FROM contacts WHERE id = $1', [id])
+      result = Contact.new(search[0]["firstname"], search[0]["lastname"], search[0]["email"])
+      result.id = search[0]["id"]
+      puts "Please enter the new First Name"
+      new_fname = gets.chomp
+      puts "Please enter the new Last Name"
+      new_lname = gets.chomp
+      puts "Please enter the new Email"
+      new_email = gets.chomp
+      Contact.connect.exec_params('UPDATE contacts SET firstname = $2, lastname = $3, email = $4 WHERE id = $1', [result.id, new_fname, new_lname, new_email])
+      puts "Contact Updated!"
     end
   end
 end
