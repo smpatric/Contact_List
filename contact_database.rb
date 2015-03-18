@@ -1,15 +1,14 @@
 ## TODO: Implement CSV reading/writing
-require 'csv'
-require_relative 'contact'
+require 'active_record'
 
-class ContactDatabase
+puts "Establishing Connection..."
 
-  @@temp_contacts = []
+ActiveRecord::Base.establish_connection(
+  database: 'd7a3eod2r4ja7f',
+  username: 'hvzvmtuzwvwzwx',
+  password: 'HmxmJY9xIpUjvabvoIbW8ZCvkD',
+  host: 'ec2-107-22-253-198.compute-1.amazonaws.com',
+  port: 5432,
+  adapter: 'postgresql')
 
-  class << self
-    def read_db
-      @@temp_contacts = CSV.read('contacts.csv')
-      return @@temp_contacts
-    end
-  end
-end
+puts "Connected!"
